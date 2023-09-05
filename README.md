@@ -7,15 +7,6 @@
 
 <details>
     <summary>
-        Драфт системы
-    </summary>
-    
-![image](https://github.com/jbenua/UberPopug/assets/3294891/5912d489-1f01-4d42-a846-8676df2e104e)
-
-</details>
-
-<details>
-    <summary>
         Требования
     </summary>
 
