@@ -1,0 +1,43 @@
+version: '2'
+
+networks:
+  popug-network:
+    driver: bridge
+
+services:
+  rabbit:
+    image: 'rabbitmq:3-management'
+    hostname: 'habbit'
+    networks:
+      - popug-network
+    ports:
+      - "8001:15672"
+      - "5672:5672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
+    volumes:
+      - /Users/jbenua/heap/rabbit:/var/lib/rabbitmq/
+  popug: 
+    build:
+     context: popug
+     target: builder
+    ports: 
+      - '8000:8000'
+
+    networks:
+      - popug-network
+
+  jirug: 
+    build:
+     context: jirug
+     target: builder
+    ports: 
+      - '8080:8080'
+
+    networks:
+      - popug-network
+
+volumes:
+  rabbit:
+    external: true
