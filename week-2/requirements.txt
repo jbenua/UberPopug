@@ -1,0 +1,2 @@
+-r jirug/requirements.txt
+-r popug/requirements.txt

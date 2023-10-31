@@ -1,0 +1,126 @@
+version: '2'
+
+networks:
+  popug-network:
+    driver: bridge
+
+volumes:
+  rabbit:
+    external: true
+  psql-popug:
+    external: true
+  psql-jirug:
+    external: true
+
+
+services:
+
+  popug: 
+    build:
+     context: popug
+     target: builder
+    ports: 
+      - '8000:8000'
+    networks:
+      - popug-network
+    environment:
+      - FLASK_APP=app.py
+    depends_on:
+      rabbit:
+        condition:
+          service_started
+      init-popug:
+        condition: service_started
+    volumes:
+      - /Users/jbenua/UberPopug/week-2/popug/:/app/
+
+  init-popug:
+    build:
+     context: popug
+     target: builder
+    networks:
+      - popug-network
+    environment:
+      - FLASK_APP=app.py
+    entrypoint: [ "python", "-m", "flask", "db", "upgrade"]   
+    depends_on:
+      psql-popug:
+        condition: service_started
+
+  jirug: 
+    build:
+     context: jirug
+     target: builder
+    ports: 
+      - '8080:8080'
+
+    networks:
+      - popug-network
+    environment:
+      - FLASK_APP=app.py
+    depends_on:
+      rabbit:
+        condition:
+          service_started
+      init-jirug:
+        condition: service_started
+    volumes:
+      - /Users/jbenua/UberPopug/week-2/jirug/:/app/
+
+  init-jirug:
+    build:
+     context: popug
+     target: builder
+    networks:
+      - popug-network
+    environment:
+      - FLASK_APP=app.py
+    entrypoint: [ "python", "-m", "flask", "db", "upgrade"] 
+    depends_on:
+      psql-jirug:
+        condition: service_started
+
+  psql-popug:
+    image: postgres
+    restart: always
+    ports:
+      - '7432:5432'
+    hostname: 'psql-popug'
+    environment:
+      POSTGRES_DB: popug
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - /Users/jbenua/heap/psql/popug:/var/lib/postgresql/data
+    networks:
+      - popug-network
+
+  psql-jirug:
+    image: postgres
+    restart: always
+    ports:
+      - '6432:5432'
+    hostname: 'psql-jirug'
+    environment:
+      POSTGRES_DB: jirug
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - /Users/jbenua/heap/psql/jirug:/var/lib/postgresql/data
+    networks:
+      - popug-network
+
+  rabbit:
+    image: 'rabbitmq:3-management'
+    hostname: 'habbit'
+    networks:
+      - popug-network
+    ports:
+      - "8001:15672"
+      - "5672:5672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
+    volumes:
+      - /Users/jbenua/heap/rabbit:/var/lib/rabbitmq/
+
