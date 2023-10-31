@@ -2,12 +2,32 @@ from threading import Thread
 
 import pika
 from flask import Flask, jsonify
+from flask_migrate import Migrate
+from flask_sqlalchemy_session import flask_scoped_session
+from models import db
+from popug_api import popug_api
+from sqlalchemy.orm import sessionmaker
 
 app = Flask(__name__)
+app.config.from_mapping(
+    {
+        "SQLALCHEMY_DATABASE_URI": (
+            "postgresql://user:password@psql-popug:5432/popug"
+        ),
+    }
+)
+app.register_blueprint(popug_api)
+
+db.init_app(app)
+flask_scoped_session(sessionmaker(bind=db.get_engine(app=app)), app=app)
+Migrate(app, db)
+
 
 data = []
 
 QUEUE_NAME = "popug-queue"
+
+
 connection = pika.BlockingConnection(
     pika.URLParameters("amqp://user:password@habbit:5672/%2F")
 )
